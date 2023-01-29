@@ -5,7 +5,7 @@ Pull Requests
 https://github.com/tusharpucsd/inmr.git
 
 # Prerequisites
-- Python 3
+- Python
 - MySQL
 - mysql connector
 

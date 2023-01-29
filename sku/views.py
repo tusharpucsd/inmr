@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.generics import get_object_or_404
-from rest_framework.status import HTTP_404_NOT_FOUND
+from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_400_BAD_REQUEST
 from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
@@ -152,11 +152,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
         """
         Creates a new category instance
         """
+        data = request.data
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def retrieve(self, request, *args, **kwargs):
         """
@@ -171,18 +172,22 @@ class CategoryViewSet(viewsets.ModelViewSet):
         Updates a category instance
         """
         partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
+        try:
+            object = self.get_object()
+        except Category.DoesNotExist:
+            raise HTTP_404_NOT_FOUND
+        serializer = self.get_serializer(object, data=request.data, partial=partial)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
         """
         Deletes a category instance
         """
-        instance = self.get_object()
-        self.perform_destroy(instance)
+        obj = self.get_object()
+        obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

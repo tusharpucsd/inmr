@@ -28,7 +28,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'department', 'department_name')
     
         def get_department_name(self, obj):
-        return obj.department.name
+            return obj.department.name
 
 
     def validate_name(self, value):
